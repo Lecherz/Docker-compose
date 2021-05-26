@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+
+  nginx:
+    image: nginx
+    ports: 
+      - "80:80"
+  
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+
+  data_service:
+    container_name: data_service
+    build: data
+    links:
+      - rabbitmq
+      - mongodb1
+    depends_on:
+      - rabbitmq
+      
+
+  create_user:
+    container_name: login
+    build: login/
+    ports: 
+      - "5000:5000"
+    links:
+      - rabbitmq
+
+  list_user:
+    container_name: list_user
+    build: list_user/
+    ports:
+      - "5001:5000"
+    links:
+      - mongodb2
+
+
+  mongodb1:
+    container_name: mongodb1
+    image: mongo
+    volumes:
+      - "./db:/data/db"
+    ports:
+      - 27017:27017
+
+
+  mongodb2:
+    container_name: mongodb2
+    image: mongo
+    volumes:
+      - "./db:/data2/db"
+    ports:
+      - 27018:27017
+
+networks:
+   my-mongo-cluster:
